@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto mt-8">
+    <h1 class="text-3xl font-bold mb-4">Edit Task</h1>
+    <form method="post" action="{% url 'edit_task' task.id %}">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <input type="text" name="task_name" value="{{ task.name }}" placeholder="Task Name" required class="border p-2 rounded-md"/>
+
+            <select name="task_priority" required class="border p-2 rounded-md">
+                <option value="Urgent" {% if task.priority == 'Urgent' %}selected{% endif %}>Urgent</option>
+                <option value="Medium" {% if task.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Low" {% if task.priority == 'Low' %}selected{% endif %}>Low</option>
+            </select>
+
+            <select name="task_status" required class="border p-2 rounded-md">
+                <option value="To do" {% if task.status == 'To do' %}selected{% endif %}>To do</option>
+                <option value="In progress" {% if task.status == 'In progress' %}selected{% endif %}>In progress</option>
+                <option value="Finished" {% if task.status == 'Finished' %}selected{% endif %}>Finished</option>
+            </select>
+
+            <input type="number" name="task_effort" value="{{ task.effort }}" placeholder="Effort (hrs)" required class="border p-2 rounded-md"/>
+            <input type="number" name="task_progress" value="{{ task.progress }}" placeholder="Progress (%)" min="0" max="100" required class="border p-2 rounded-md"/>
+
+            <!-- New dropdown for the team -->
+            <select name="task_team" required class="border p-2 rounded-md">
+                <option value="Roel" {% if task.team == 'Roel' %}selected{% endif %}>Roel</option>
+                <option value="Harry" {% if task.team == 'Harry' %}selected{% endif %}>Harry</option>
+            </select>
+        </div>
+
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded-md p-2">
+            Save Changes
+        </button>
+    </form>
+</div>
+{% endblock %}

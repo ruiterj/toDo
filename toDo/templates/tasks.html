@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto mt-8">
+    <h1 class="text-3xl font-bold mb-4">Tasks</h1>
+
+    <!-- New Task Form -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-8">
+        <h2 class="text-2xl font-bold mb-4">Create New Task</h2>
+        <form method="post" action="{% url 'tasks' %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="task_name" class="block text-sm font-medium text-gray-700">Task Name</label>
+                    <input type="text" name="task_name" id="task_name" required class="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                </div>
+                <div>
+                    <label for="task_priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                    <select name="task_priority" id="task_priority" required class="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                        <option value="Urgent">Urgent</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="task_status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="task_status" id="task_status" required class="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                        <option value="To do">To do</option>
+                        <option value="In progress">In progress</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="task_effort" class="block text-sm font-medium text-gray-700">Effort (hrs)</label>
+                    <input type="number" name="task_effort" id="task_effort" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" min="1">
+                </div>
+                <div>
+                    <label for="task_progress" class="block text-sm font-medium text-gray-700">Progress (%)</label>
+                    <input type="number" name="task_progress" id="task_progress" required class="mt-1 p-2 border border-gray-300 rounded-md w-full" min="0" max="100">
+                </div>
+                <div>
+                    <label for="task_team" class="block text-sm font-medium text-gray-700">Team</label>
+                    <select name="task_team" id="task_team" required class="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                        <option value="Roel">Roel</option>
+                        <option value="Harry">Harry</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Create Task
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Tasks Table (To do and In progress) -->
+    <h2 class="text-2xl font-bold mb-4">Active Tasks</h2>
+    <table class="min-w-full bg-white border border-gray-200">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Effort (hrs)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress (%)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr class="border-t border-gray-200">
+                <td class="px-6 py-4 whitespace-nowrap">{{ task.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ task.priority }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ task.status }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ task.team }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ task.effort }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ task.progress }}%</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <a href="{% url 'edit_task' task.id %}" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                        Edit
+                    </a>
+                    <form method="post" action="{% url 'delete_task' task.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                            Delete
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'push_status' task.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                            Push Status
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Finished Tasks Table -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold mt-8 mb-4">Finished Tasks</h2>
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in finished_tasks %}
+                <tr class="border-t border-gray-200">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ task.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ task.priority }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ task.status }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <form method="post" action="{% url 'move_to_in_progress' task.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                                Move to In Progress
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

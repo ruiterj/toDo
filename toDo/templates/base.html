@@ -1,0 +1,38 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}To do{% endblock %}</title>
+    {% tailwind_css %}
+</head>
+<body class="flex flex-col min-h-screen">
+    <nav class="bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="" class="flex-shrink-0">
+                        <span class="font-bold text-xl">to Do</span>
+                    </a>
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="{% url 'overview' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">Overview</a>
+                        <a href="{% url 'tasks' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">Tasks</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-white py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p class="text-center">&copy; 2024 ToDo. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

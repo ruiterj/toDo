@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">Today's Plan</h2>
+
+        <form method="post" action="{% url 'overview' %}">
+            {% csrf_token %}
+            <button type="submit" name="action" value="plan_day" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md mb-4">
+                Plan My Day
+            </button>
+            <button type="submit" name="action" value="remove_day_plan" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md mb-4">
+                Clear Day Plan
+            </button>
+        </form>
+
+        <ul id="day-plan-list" class="pl-5">
+            {% for slot, task in day_schedule %}
+            <li class="flex items-center mb-2">
+                <strong class="w-32">{{ slot }}:</strong>
+                <div class="time-slot flex-1" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    {% if task %}
+                    <div class="task-item flex items-center justify-between" draggable="true" id="task-{{ task.id }}" style="background-color: {% if task.color_status == 'green' %}#d4edda{% elif task.color_status == 'yellow' %}#fff7cd{% endif %};">
+                        <span>{{ task.name }}</span> <!-- Display task name with ID for debugging -->
+                        <input type="hidden" class="task-id" value="{{ task.id }}"> <!-- Hidden field for the task ID -->
+                        <button class="finish-btn ml-2 bg-green-500 text-white text-sm p-1 rounded" onclick="finishTask(event, '{{ task.id }}')">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                    {% else %}
+                        <span class="text-gray-500">No task scheduled</span>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        
+        
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">Overview</h2>
+            <p><strong>Week Number:</strong> {{ current_week }}</p>
+            <p><strong>Date:</strong> {{ current_date }}</p>
+        
+            <h3 class="text-xl font-bold mt-8 mb-4">Task Distribution</h3>
+            <img src="data:image/png;base64,{{ pie_chart }}" alt="Pie Chart" class="w-full h-auto">
+        
+            <h3 class="text-xl font-bold mt-8 mb-4">Total Hours Worked - Last 4 Weeks</h3>
+            <img src="data:image/png;base64,{{ bar_chart }}" alt="Bar Chart" class="w-full h-auto">
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to allow an element to be dropped into a time slot
+    function allowDrop(event) {
+        event.preventDefault();
+    }
+
+    // Function to handle the drag start event
+    function drag(event) {
+        event.dataTransfer.setData("text", event.target.id);
+        event.target.classList.add('dragging');
+    }
+
+    // Function to handle the drop event
+    function drop(event) {
+        event.preventDefault();
+        const data = event.dataTransfer.getData("text");
+        const draggedTask = document.getElementById(data);
+        const targetSlot = event.target.closest('.time-slot'); // Ensure we're targeting the time slot
+
+        // Check if the target is a time slot
+        if (targetSlot && targetSlot.classList.contains('time-slot')) {
+            const targetTask = targetSlot.querySelector('.task-item'); // Get the existing task in the target slot, if any
+
+            if (targetTask) {
+                // Swap the tasks between the source slot and target slot
+                const sourceSlot = draggedTask.parentElement;
+                sourceSlot.appendChild(targetTask); // Move the existing task to the original slot
+            }
+
+            // Move the dragged task to the target slot
+            targetSlot.appendChild(draggedTask);
+            draggedTask.classList.remove('dragging');
+        }
+    }
+
+    function finishTask(event, taskId) {
+    event.preventDefault();
+
+    console.log('Task ID:', taskId); // Debugging statement to check taskId value
+
+    if (!taskId) {
+        console.error('Task ID is missing.');
+        return;
+    }
+
+    fetch(`/finish-task/${taskId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            const taskElement = document.getElementById(`task-${taskId}`);
+
+            if (!taskElement) {
+                console.error(`Task element with ID task-${taskId} not found.`);
+                return;
+            }
+
+            // Update task color based on progress
+            if (data.new_progress >= 100) {
+                taskElement.style.backgroundColor = '#d4edda'; // Set to light green when finished
+                event.target.disabled = true; // Disable finish button
+            } else {
+                taskElement.style.backgroundColor = '#fff7cd'; // Set to light yellow for in-progress
+            }
+
+            if (data.finished_date) {
+                alert(`Task "${data.task_name}" completed on ${data.finished_date}!`);
+            } else {
+                alert(`Task "${data.task_name}" progress updated to ${Math.round(data.new_progress)}%`);
+            }
+        } else {
+            alert('Failed to update task progress: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the task. Please try again.');
+    });
+}
+
+
+
+
+
+    // Assign draggable attribute and event listeners to each task
+    document.querySelectorAll('.task-item').forEach(task => {
+        task.setAttribute('draggable', 'true');
+        // task.id = 'task-' + Math.random().toString(36).substr(2, 9); // Assign a unique ID to each task
+        task.addEventListener('dragstart', drag);
+        task.addEventListener('dragend', () => task.classList.remove('dragging'));
+    });
+</script>
+
+<style>
+    .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: grab;
+        background-color: #f3f4f6;
+        border: 1px solid #e2e8f0;
+        padding: 5px;
+        margin: 2px 0;
+        border-radius: 4px;
+        text-align: left;
+    }
+
+    .finish-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 22px;
+        width: 22px;
+        margin-left: 8px;
+        font-size: 0.8em;
+    }
+
+    .finish-btn i {
+        font-size: 1rem;
+    }
+
+    .dragging {
+        opacity: 0.6;
+        cursor: grabbing;
+        background-color: #cbd5e0;
+    }
+</style>
+{% endblock %}

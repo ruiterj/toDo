@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <button type="submit" class="custom-button bg-create-task text-white font-bold py-2 px-4 rounded">
                     Create Task
                 </button>
             </div>
@@ -77,24 +77,24 @@
                 <td class="px-6 py-4 whitespace-nowrap">{{ task.effort }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ task.progress }}%</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <a href="{% url 'edit_task' task.id %}" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                    <a href="{% url 'edit_task' task.id %}" class="btn bg-create-task hover:bg-hover-create text-white font-bold py-1 px-4 rounded inline-block text-center">
                         Edit
                     </a>
                     <form method="post" action="{% url 'delete_task' task.id %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                        <button type="submit" class="btn bg-delete-button hover:bg-hover-delete text-white font-bold py-1 px-4 rounded inline-block text-center">
                             Delete
                         </button>
                     </form>
                     <form method="post" action="{% url 'push_status' task.id %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                        <button type="submit" class="btn bg-push-status hover:bg-hover-push text-white font-bold py-1 px-4 rounded inline-block text-center">
                             Push Status
                         </button>
                     </form>
                     <form method="post" action="{% url 'put_on_hold' task.id %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                        <button type="submit" class="btn bg-put-hold hover:bg-hover-hold text-white font-bold py-1 px-4 rounded inline-block text-center">
                             Put on Hold
                         </button>
                     </form>
@@ -125,7 +125,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <form method="post" action="{% url 'move_to_active' task.id %}" style="display: inline;">
                             {% csrf_token %}
-                            <button type="submit" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                            <button type="submit" class="btn bg-move-active hover:bg-hover-move text-white font-bold py-1 px-4 rounded inline-block text-center">
                                 Move to Active
                             </button>
                         </form>
@@ -157,8 +157,8 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <form method="post" action="{% url 'move_to_in_progress' task.id %}" style="display: inline;">
                             {% csrf_token %}
-                            <button type="submit" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
-                                Move to In Active
+                            <button type="submit" class="btn bg-move-active hover:bg-hover-move text-white font-bold py-1 px-4 rounded inline-block text-center">
+                                Move to In Progress
                             </button>
                         </form>
                     </td>
@@ -168,4 +168,23 @@
         </table>
     </div>
 </div>
+
+<!-- CSS for the button colors -->
+<style>
+    /* Button colors */
+    .bg-create-task { background-color: #577590; }
+    .hover\:bg-hover-create:hover { background-color: #3d5266; }
+
+    .bg-delete-button { background-color: #f94144; }
+    .hover\:bg-hover-delete:hover { background-color: #d13132; }
+
+    .bg-push-status { background-color: #90be6d; }
+    .hover\:bg-hover-push:hover { background-color: #6b8c4f; }
+
+    .bg-put-hold { background-color: #f9c74f; }
+    .hover\:bg-hover-hold:hover { background-color: #e0ae42; }
+
+    .bg-move-active { background-color: #43aa8b; }
+    .hover\:bg-hover-move:hover { background-color: #358a6f; }
+</style>
 {% endblock %}

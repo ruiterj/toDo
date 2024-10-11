@@ -6,6 +6,11 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+import matplotlib.pyplot as plt
+import io
+import base64
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Sum
 
 
 day_plan = []  # Ensure day_plan is initialized here to avoid NameError
@@ -62,11 +67,30 @@ def overview(request):
     current_date = datetime.now().strftime('%Y-%m-%d')
     current_week = datetime.now().strftime('%U')
 
+    finished_tasks = Task.objects.filter(status='Finished')
+    team_hours = finished_tasks.values('team').annotate(total_hours=Sum('effort'))
+
+
+    team_labels = [item['team'] for item in team_hours]
+    team_sizes = [item['total_hours'] for item in team_hours]
+
+    fig, ax = plt.subplots()
+    ax.pie(team_sizes, labels=team_labels, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')
+
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.getvalue()).decode()
+    buffer.close()
+
     context = {
-        'day_schedule': day_schedule,
-        'current_date': current_date,
-        'current_week': current_week,
+    'day_schedule': day_schedule,
+    'current_date': current_date,
+    'current_week': current_week,
+    'pie_chart':image_base64
     }
+
     return render(request, 'overview.html', context)
 
 

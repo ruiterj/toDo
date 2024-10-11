@@ -99,11 +99,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Task
 
 def tasks_view(request):
-    # Fetch all tasks that are either "To do" or "In progress"
-    active_tasks = Task.objects.exclude(status='Finished')
+    # Fetch all active tasks (excluding Finished and On hold)
+    active_tasks = Task.objects.filter(status__in=['To do', 'In progress'])
     
     # Fetch all tasks that are marked as "Finished"
     finished_tasks = Task.objects.filter(status='Finished')
+
+    # Fetch tasks that are on hold
+    on_hold_tasks = Task.objects.filter(status='On hold')
 
     if request.method == 'POST':
         task_name = request.POST.get('task_name')
@@ -127,6 +130,7 @@ def tasks_view(request):
     context = {
         'tasks': active_tasks,
         'finished_tasks': finished_tasks,
+        'on_hold_tasks': on_hold_tasks,
     }
     return render(request, 'tasks.html', context)
 
@@ -191,5 +195,17 @@ def finish_task(request, task_id):
 def move_to_in_progress(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     task.status = 'In progress'
+    task.save()
+    return redirect('tasks')
+
+def put_on_hold(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    task.status = 'On hold'
+    task.save()
+    return redirect('tasks')
+
+def move_to_active(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    task.status = 'To do'
     task.save()
     return redirect('tasks')

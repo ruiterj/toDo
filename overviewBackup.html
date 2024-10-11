@@ -21,26 +21,36 @@
                 <strong class="w-32">{{ slot }}:</strong>
                 <div class="time-slot flex-1" ondrop="drop(event)" ondragover="allowDrop(event)">
                     {% if task %}
-                        <div class="task-item flex items-center justify-between" draggable="true" id="task-{{ task.name|slugify }}">
-                            <span>{{ task.name }}</span>
-                            <button class="finish-btn ml-2 bg-green-500 text-white text-sm p-1 rounded" onclick="finishTask(event, '{{ task.name|slugify }}')">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </div>
+                    <div class="task-item flex items-center justify-between" draggable="true" id="task-{{ task.id }}" style="background-color: {% if task.color_status == 'green' %}#d4edda{% elif task.color_status == 'yellow' %}#fff7cd{% endif %};">
+                        <span>{{ task.name }}</span> <!-- Display task name with ID for debugging -->
+                        <input type="hidden" class="task-id" value="{{ task.id }}"> <!-- Hidden field for the task ID -->
+                        <button class="finish-btn ml-2 bg-green-500 text-white text-sm p-1 rounded" onclick="finishTask(event, '{{ task.id }}')">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
                     {% else %}
-                        <span class="text-gray-500">Click Plan My Day</span>
+                        <span class="text-gray-500">No task scheduled</span>
                     {% endif %}
                 </div>
             </li>
             {% endfor %}
         </ul>
         
+        
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-4">Overview</h2>
-        <p><strong>Week Number:</strong> {{ current_week }}</p>
-        <p><strong>Date:</strong> {{ current_date }}</p>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">Overview</h2>
+            <p><strong>Week Number:</strong> {{ current_week }}</p>
+            <p><strong>Date:</strong> {{ current_date }}</p>
+        
+            <h3 class="text-xl font-bold mt-8 mb-4">Task Distribution</h3>
+            <img src="data:image/png;base64,{{ pie_chart }}" alt="Pie Chart" class="w-full h-auto">
+        
+            <h3 class="text-xl font-bold mt-8 mb-4">Total Hours Worked - Last 4 Weeks</h3>
+            <img src="data:image/png;base64,{{ bar_chart }}" alt="Bar Chart" class="w-full h-auto">
+        </div>
     </div>
 </div>
 
@@ -80,53 +90,69 @@
     }
 
     function finishTask(event, taskId) {
-        event.preventDefault();
+    event.preventDefault();
 
-        fetch(`/finish-task/${taskId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                const taskElement = event.target.closest('.task-item');
+    console.log('Task ID:', taskId); // Debugging statement to check taskId value
 
-                // Update task color based on progress
-                if (data.new_progress >= 100) {
-                    taskElement.style.backgroundColor = '#d4edda'; // Set to light green when finished
-                    event.target.disabled = true; // Disable finish button
-                } else {
-                    taskElement.style.backgroundColor = '#fff7cd'; // Set to light yellow for in-progress
-                }
-
-                if (data.finished_date) {
-                    alert(`Task "${data.task_name}" completed on ${data.finished_date}!`);
-                } else {
-                    alert(`Task "${data.task_name}" progress updated to ${Math.round(data.new_progress)}%`);
-                }
-            } else {
-                alert('Failed to update task progress: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating the task. Please try again.');
-        });
+    if (!taskId) {
+        console.error('Task ID is missing.');
+        return;
     }
+
+    fetch(`/finish-task/${taskId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            const taskElement = document.getElementById(`task-${taskId}`);
+
+            if (!taskElement) {
+                console.error(`Task element with ID task-${taskId} not found.`);
+                return;
+            }
+
+            // Update task color based on progress
+            if (data.new_progress >= 100) {
+                taskElement.style.backgroundColor = '#d4edda'; // Set to light green when finished
+                event.target.disabled = true; // Disable finish button
+            } else {
+                taskElement.style.backgroundColor = '#fff7cd'; // Set to light yellow for in-progress
+            }
+
+            if (data.finished_date) {
+                alert(`Task "${data.task_name}" completed on ${data.finished_date}!`);
+            } else {
+                alert(`Task "${data.task_name}" progress updated to ${Math.round(data.new_progress)}%`);
+            }
+        } else {
+            alert('Failed to update task progress: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the task. Please try again.');
+    });
+}
+
+
+
+
 
     // Assign draggable attribute and event listeners to each task
     document.querySelectorAll('.task-item').forEach(task => {
         task.setAttribute('draggable', 'true');
-        task.id = 'task-' + Math.random().toString(36).substr(2, 9); // Assign a unique ID to each task
+        // task.id = 'task-' + Math.random().toString(36).substr(2, 9); // Assign a unique ID to each task
         task.addEventListener('dragstart', drag);
         task.addEventListener('dragend', () => task.classList.remove('dragging'));
     });

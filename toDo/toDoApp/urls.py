@@ -11,4 +11,6 @@ urlpatterns = [
     path('update-day-plan-order/', views.update_day_plan_order, name='update_day_plan_order'),
     path('finish-task/<int:task_id>/', views.finish_task, name='finish_task'),
     path('tasks/move_to_in_progress/<int:task_id>/', views.move_to_in_progress, name='move_to_in_progress'),
+    path('put_on_hold/<int:task_id>/', views.put_on_hold, name='put_on_hold'),
+    path('move_to_active/<int:task_id>/', views.move_to_active, name='move_to_active'),
 ]

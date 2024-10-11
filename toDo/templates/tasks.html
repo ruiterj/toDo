@@ -92,11 +92,49 @@
                             Push Status
                         </button>
                     </form>
+                    <form method="post" action="{% url 'put_on_hold' task.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                            Put on Hold
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- On Hold Tasks Table -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold mt-8 mb-4">On Hold Tasks</h2>
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in on_hold_tasks %}
+                <tr class="border-t border-gray-200">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ task.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ task.priority }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ task.status }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <form method="post" action="{% url 'move_to_active' task.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
+                                Move to Active
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <!-- Finished Tasks Table -->
     <div class="mb-8">
@@ -120,7 +158,7 @@
                         <form method="post" action="{% url 'move_to_in_progress' task.id %}" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded inline-block text-center">
-                                Move to In Progress
+                                Move to In Active
                             </button>
                         </form>
                     </td>

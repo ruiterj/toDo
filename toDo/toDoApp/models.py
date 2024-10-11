@@ -12,6 +12,7 @@ class Task(models.Model):
         ('To do', 'To do'),
         ('In progress', 'In progress'),
         ('Finished', 'Finished'),
+        ('On hold', 'On hold'),
     ]
 
     TEAM_CHOICES = [
